@@ -14,35 +14,14 @@ public class Pedido {
         this.cantidad = cantidad;
     }
 
-    public Cliente getCliente() {
-        return cliente;
-    }
+    public Cliente getCliente() { return cliente; }
+    public void setCliente(Cliente cliente) { this.cliente = cliente; }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
-    }
+    public String getProducto() { return producto; }
+    public void setProducto(String producto) { this.producto = producto; }
 
-    public String getProducto() {
-        return producto;
-    }
-
-    public void setProducto(String producto) {
-        this.producto = producto;
-    }
-
-    public int getCantidad() {
-        return cantidad;
-    }
-
-    public void setCantidad(int cantidad) {
-        this.cantidad = cantidad;
-    }
-
-    public void mostrarDetalle() {
-        System.out.println("Cliente: " + cliente.getNombre());
-        System.out.println("Producto: " + producto);
-        System.out.println("Cantidad: " + cantidad);
-    }
+    public int getCantidad() { return cantidad; }
+    public void setCantidad(int cantidad) { this.cantidad = cantidad; }
 
     @Override
     public String toString() {
@@ -61,4 +40,3 @@ public class Pedido {
         );
     }
 }
-

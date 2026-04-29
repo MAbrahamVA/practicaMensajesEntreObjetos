@@ -1,9 +1,16 @@
 package mensajesEntreObjetos.modelos;
 
+import mensajesEntreObjetos.Interface.gestionTienda;
+
 import javax.swing.JOptionPane;
+import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
-public class Tienda {
+public class Tienda implements gestionTienda {
+
     private ArrayList<Cliente> clientes;
     private ArrayList<Pedido> pedidos;
 
@@ -12,16 +19,41 @@ public class Tienda {
         this.pedidos = new ArrayList<>();
     }
 
+    @Override
     public void agregarCliente() {
-        String nombre = JOptionPane.showInputDialog("Nombre:");
-        String apellido = JOptionPane.showInputDialog("Apellido:");
-        String dir = JOptionPane.showInputDialog("Dirección:");
-        String id = JOptionPane.showInputDialog("ID:");
+        try {
+            DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-        clientes.add(new Cliente(nombre, apellido, dir, id));
-        JOptionPane.showMessageDialog(null, "Cliente registrado en la tienda.");
+            String nombre = JOptionPane.showInputDialog("Nombre:");
+            if (nombre == null) return; // Si cancela, sale del método
+
+            String apellido = JOptionPane.showInputDialog("Apellido:");
+            String dir = JOptionPane.showInputDialog("Dirección:");
+            String id = JOptionPane.showInputDialog("ID:");
+            String email = JOptionPane.showInputDialog("Email:");
+
+            String fechaStr = JOptionPane.showInputDialog("Fecha de Nacimiento (dd/mm/aaaa):");
+            if (fechaStr == null) return; // Validación extra si cancela en la fecha
+
+            LocalDate fechaConvertida = LocalDate.parse(fechaStr, formato);
+            Cliente nuevoCliente = new Cliente(nombre, apellido, dir, id, email, fechaConvertida);
+
+            clientes.add(nuevoCliente);
+
+            JOptionPane.showMessageDialog(null,
+                    "Cliente registrado con éxito.\nEdad calculada: " + nuevoCliente.calcularEdad() + " años.");
+
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(null,
+                    "Error: El formato de fecha no es válido. Use dd/mm/aaaa",
+                    "Error de entrada",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (NullPointerException e) {
+            JOptionPane.showMessageDialog(null, "Operación cancelada por el usuario.");
+        }
     }
 
+    @Override
     public void listarClientes() {
         if (clientes.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay clientes en la base de datos.");
@@ -29,26 +61,41 @@ public class Tienda {
         }
         StringBuilder sb = new StringBuilder("--- CLIENTES REGISTRADOS ---\n");
         for (int i = 0; i < clientes.size(); i++) {
-            sb.append(i).append(". ").append(clientes.get(i).getNombreCompleto()).append("\n");
+            Cliente c = clientes.get(i);
+            // CORRECCIÓN: Ahora mostramos la edad en la lista de clientes
+            sb.append(i).append(". ").append(c.getNombreCompleto())
+                    .append(" (Edad: ").append(c.calcularEdad()).append(" años)\n");
         }
         JOptionPane.showMessageDialog(null, sb.toString());
     }
 
+    @Override
     public void iniciarPedido() {
         int index = seleccionarIndiceCliente();
         if (index != -1) {
-            String producto = JOptionPane.showInputDialog("Producto a comprar:");
-            int cantidad = Integer.parseInt(JOptionPane.showInputDialog("Cantidad:"));
-            clientes.get(index).realizarPedido(this, producto, cantidad);
+            try {
+                String producto = JOptionPane.showInputDialog("Producto a comprar:");
+                if (producto == null) return;
+
+                String inputCantidad = JOptionPane.showInputDialog("Cantidad:");
+                if (inputCantidad == null) return;
+
+                int cantidad = Integer.parseInt(inputCantidad);
+                clientes.get(index).realizarPedido(this, producto, cantidad);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Error: La cantidad debe ser un número entero.");
+            }
         }
     }
 
+    @Override
     public void procesarPedido(Cliente cliente, String producto, int cantidad) {
         Pedido nuevoPedido = new Pedido(cliente, producto, cantidad);
-        pedidos.add(nuevoPedido); // Guardamos el pedido en la lista
+        pedidos.add(nuevoPedido);
         JOptionPane.showMessageDialog(null, "Pedido Guardado:\n" + nuevoPedido);
     }
 
+    @Override
     public void listarPedidos() {
         if (pedidos.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay pedidos registrados.");
@@ -64,30 +111,47 @@ public class Tienda {
         JOptionPane.showMessageDialog(null, sb.toString());
     }
 
+    @Override
     public void modificarPedido() {
         if (pedidos.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay pedidos para editar.");
             return;
         }
         listarPedidos();
-        int index = Integer.parseInt(JOptionPane.showInputDialog("Índice del pedido a modificar:"));
+        try {
+            int index = Integer.parseInt(JOptionPane.showInputDialog("Índice del pedido a modificar:"));
 
-        if (index >= 0 && index < pedidos.size()) {
-            Pedido p = pedidos.get(index);
-            p.setProducto(JOptionPane.showInputDialog("Nuevo producto:", p.getProducto()));
-            p.setCantidad(Integer.parseInt(JOptionPane.showInputDialog("Nueva cantidad:", p.getCantidad())));
-            JOptionPane.showMessageDialog(null, "Pedido actualizado.");
+            if (index >= 0 && index < pedidos.size()) {
+                Pedido p = pedidos.get(index);
+                p.setProducto(JOptionPane.showInputDialog("Nuevo producto:", p.getProducto()));
+                p.setCantidad(Integer.parseInt(JOptionPane.showInputDialog("Nueva cantidad:", p.getCantidad())));
+                JOptionPane.showMessageDialog(null, "Pedido actualizado.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Índice fuera de rango.");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Error: Ingrese un número válido.");
         }
     }
 
+    @Override
     public void eliminarPedido() {
-        if (pedidos.isEmpty()) return;
+        if (pedidos.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No hay pedidos para eliminar.");
+            return;
+        }
         listarPedidos();
-        int index = Integer.parseInt(JOptionPane.showInputDialog("Índice del pedido a eliminar:"));
+        try {
+            int index = Integer.parseInt(JOptionPane.showInputDialog("Índice del pedido a eliminar:"));
 
-        if (index >= 0 && index < pedidos.size()) {
-            pedidos.remove(index);
-            JOptionPane.showMessageDialog(null, "Pedido borrado con éxito.");
+            if (index >= 0 && index < pedidos.size()) {
+                pedidos.remove(index);
+                JOptionPane.showMessageDialog(null, "Pedido borrado con éxito.");
+            } else {
+                JOptionPane.showMessageDialog(null, "Índice fuera de rango.");
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "Error: Ingrese un número válido.");
         }
     }
 
@@ -98,7 +162,17 @@ public class Tienda {
         }
         listarClientes();
         try {
-            return Integer.parseInt(JOptionPane.showInputDialog("Seleccione el índice del cliente:"));
-        } catch (Exception e) { return -1; }
+            String input = JOptionPane.showInputDialog("Seleccione el índice del cliente:");
+            if (input == null) return -1;
+            int index = Integer.parseInt(input);
+            if (index >= 0 && index < clientes.size()) {
+                return index;
+            } else {
+                JOptionPane.showMessageDialog(null, "Índice de cliente no válido.");
+                return -1;
+            }
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 }

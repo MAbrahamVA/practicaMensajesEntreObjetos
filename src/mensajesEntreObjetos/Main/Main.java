@@ -1,11 +1,12 @@
 package mensajesEntreObjetos.Main;
 
+import mensajesEntreObjetos.Interface.gestionTienda;
 import mensajesEntreObjetos.modelos.Tienda;
 import javax.swing.JOptionPane;
 
 public class Main {
     public static void main(String[] args) {
-        Tienda miTienda = new Tienda();
+        gestionTienda miTienda = new Tienda();
         int opcion = 0;
 
         do {
@@ -22,19 +23,21 @@ public class Main {
                         "Seleccione una opción:";
 
                 String input = JOptionPane.showInputDialog(menu);
-                if (input == null) break;
+                if (input == null) break; // Cierra si presionan cancelar o la "X"
                 opcion = Integer.parseInt(input);
 
                 switch (opcion) {
                     case 1 -> miTienda.agregarCliente();
                     case 2 -> miTienda.listarClientes();
-                    case 3 -> miTienda.iniciarPedido(); // Crea y guarda
-                    case 4 -> miTienda.listarPedidos(); // Ver
-                    case 5 -> miTienda.modificarPedido(); // Editar
-                    case 6 -> miTienda.eliminarPedido(); // Borrar
+                    case 3 -> miTienda.iniciarPedido();
+                    case 4 -> miTienda.listarPedidos();
+                    case 5 -> miTienda.modificarPedido();
+                    case 6 -> miTienda.eliminarPedido();
+                    case 7 -> JOptionPane.showMessageDialog(null, "Saliendo del sistema...");
+                    default -> JOptionPane.showMessageDialog(null, "Opción no válida.");
                 }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Error: Ingrese un valor válido.");
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Error: Ingrese un valor numérico válido.");
             }
         } while (opcion != 7);
     }
